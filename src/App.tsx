@@ -5,7 +5,7 @@ import InputField from './components/InputField';
 import { useState } from 'react';
 import { Todo } from './model';
 import TodoList from './components/TodoList';
-import { DragDropContext } from 'react-beautiful-dnd';
+import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 
 
 const App: React.FC = () => {
@@ -28,8 +28,41 @@ const App: React.FC = () => {
     console.log(todos);
   },[todos]);
 
-  const handleOnDragEnd = () => {
-    console.log("dragEnd");
+  const handleOnDragEnd = (result:DropResult) => {
+    console.log(result);
+
+    const {source, destination} = result;
+
+    // dragged to outside container droppable section do nothing
+    if (!destination) return; 
+
+    // dragged but left in same position do nothing
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) return;
+
+    let add, 
+      active = todos,
+      complete = completedTodos;
+
+    if(source.droppableId === "TodosList") {
+      add = active[source.index];
+      active.splice(source.index, 1);
+    } else {
+      add = complete[source.index];
+      complete.splice(source.index, 1);
+    }
+
+    if(destination.droppableId === "TodosList") {
+      active.splice(destination.index, 0, add);
+    }else{
+      complete.splice(destination.index, 0, add);
+    }
+
+    setCompletedTodos(complete);
+    setTodos(active);
+ 
   }
 
   return (
